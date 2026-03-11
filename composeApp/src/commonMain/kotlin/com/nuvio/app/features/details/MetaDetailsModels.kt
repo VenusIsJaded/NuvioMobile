@@ -19,12 +19,23 @@ data class MetaDetails(
     val language: String? = null,
     val website: String? = null,
     val links: List<MetaLink> = emptyList(),
+    val videos: List<MetaVideo> = emptyList(),
 )
 
 data class MetaLink(
     val name: String,
     val category: String,
     val url: String,
+)
+
+data class MetaVideo(
+    val id: String,
+    val title: String,
+    val released: String? = null,
+    val thumbnail: String? = null,
+    val season: Int? = null,
+    val episode: Int? = null,
+    val overview: String? = null,
 )
 
 data class MetaDetailsUiState(

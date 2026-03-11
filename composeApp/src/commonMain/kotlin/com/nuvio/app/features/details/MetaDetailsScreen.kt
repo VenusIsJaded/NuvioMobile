@@ -38,12 +38,14 @@ import com.nuvio.app.features.details.components.DetailActionButtons
 import com.nuvio.app.features.details.components.DetailCastSection
 import com.nuvio.app.features.details.components.DetailHero
 import com.nuvio.app.features.details.components.DetailMetaInfo
+import com.nuvio.app.features.details.components.DetailSeriesContent
 
 @Composable
 fun MetaDetailsScreen(
     type: String,
     id: String,
     onBack: () -> Unit,
+    onPlay: ((type: String, videoId: String, title: String, logo: String?, poster: String?, background: String?, seasonNumber: Int?, episodeNumber: Int?, episodeTitle: String?, episodeThumbnail: String?) -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     val uiState by MetaDetailsRepository.uiState.collectAsStateWithLifecycle()
@@ -102,11 +104,51 @@ fun MetaDetailsScreen(
                             .padding(horizontal = 18.dp),
                         verticalArrangement = Arrangement.spacedBy(20.dp),
                     ) {
-                        DetailActionButtons()
+                        DetailActionButtons(
+                            onPlayClick = {
+                                onPlay?.invoke(
+                                    meta.type,
+                                    meta.id,
+                                    meta.name,
+                                    meta.logo,
+                                    meta.poster,
+                                    meta.background,
+                                    null,
+                                    null,
+                                    null,
+                                    null,
+                                )
+                            },
+                        )
 
                         DetailMetaInfo(meta = meta)
 
                         DetailCastSection(cast = meta.cast)
+
+                        DetailSeriesContent(
+                            meta = meta,
+                            onEpisodeClick = { video ->
+                                val season = video.season
+                                val episode = video.episode
+                                val videoId = if (season != null && episode != null) {
+                                    "${meta.id}:${season}:${episode}"
+                                } else {
+                                    video.id
+                                }
+                                onPlay?.invoke(
+                                    meta.type,
+                                    videoId,
+                                    meta.name,
+                                    meta.logo,
+                                    meta.poster,
+                                    meta.background,
+                                    season,
+                                    episode,
+                                    video.title,
+                                    video.thumbnail,
+                                )
+                            },
+                        )
 
                         Spacer(modifier = Modifier.height(32.dp + nuvioPlatformExtraBottomPadding))
                     }

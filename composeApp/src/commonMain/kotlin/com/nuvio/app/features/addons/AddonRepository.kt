@@ -61,14 +61,12 @@ object AddonRepository {
 
         _uiState.update { current ->
             current.copy(
-                addons = listOf(
-                    ManagedAddon(
-                        manifestUrl = manifestUrl,
-                        manifest = manifest,
-                        isRefreshing = false,
-                        errorMessage = null,
-                    ),
-                ) + current.addons,
+                addons = current.addons + ManagedAddon(
+                    manifestUrl = manifestUrl,
+                    manifest = manifest,
+                    isRefreshing = false,
+                    errorMessage = null,
+                ),
             )
         }
         persist()

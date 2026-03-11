@@ -82,12 +82,12 @@ object HomeRepository {
             catalogId = catalogId,
         )
         val payload = httpGetText(catalogUrl)
-        val items = HomeCatalogParser.parseCatalog(payload).take(12)
+        val items = HomeCatalogParser.parseCatalog(payload)
         require(items.isNotEmpty()) { "No feed items returned for $catalogName." }
 
         return HomeCatalogSection(
             key = "${manifest.id}:$type:$catalogId",
-            title = catalogName,
+            title = "$catalogName - ${type.displayLabel()}",
             subtitle = manifest.name,
             addonName = manifest.name,
             type = type,
@@ -108,3 +108,8 @@ private fun buildCatalogUrl(
         .removeSuffix("/manifest.json")
     return "$baseUrl/catalog/$type/$catalogId.json"
 }
+
+private fun String.displayLabel(): String =
+    replaceFirstChar { char ->
+        if (char.isLowerCase()) char.titlecase() else char.toString()
+    }

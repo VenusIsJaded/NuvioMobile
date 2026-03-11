@@ -4,6 +4,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
@@ -33,6 +34,7 @@ internal object MetaDetailsParser {
             language = meta.string("language"),
             website = meta.string("website"),
             links = meta.links(),
+            videos = meta.videos(),
         )
     }
 
@@ -55,5 +57,24 @@ internal object MetaDetailsParser {
             val category = link.string("category") ?: return@mapNotNull null
             val url = link.string("url") ?: return@mapNotNull null
             MetaLink(name = linkName, category = category, url = url)
+        }
+
+    private fun JsonObject.int(name: String): Int? =
+        this[name]?.jsonPrimitive?.intOrNull
+
+    private fun JsonObject.videos(): List<MetaVideo> =
+        array("videos").mapNotNull { element ->
+            val video = element as? JsonObject ?: return@mapNotNull null
+            val id = video.string("id") ?: return@mapNotNull null
+            val title = video.string("title") ?: video.string("name") ?: return@mapNotNull null
+            MetaVideo(
+                id = id,
+                title = title,
+                released = video.string("released"),
+                thumbnail = video.string("thumbnail"),
+                season = video.int("season"),
+                episode = video.int("episode"),
+                overview = video.string("overview") ?: video.string("description"),
+            )
         }
 }

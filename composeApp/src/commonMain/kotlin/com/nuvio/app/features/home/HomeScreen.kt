@@ -2,11 +2,13 @@ package com.nuvio.app.features.home
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nuvio.app.core.ui.NuvioScreen
 import com.nuvio.app.features.addons.AddonRepository
@@ -77,6 +79,7 @@ fun HomeScreen(
                 ) { index ->
                     HomeCatalogRowSection(
                         section = homeUiState.sections[index],
+                        modifier = Modifier.padding(bottom = 12.dp),
                         onPosterClick = onPosterClick,
                     )
                 }

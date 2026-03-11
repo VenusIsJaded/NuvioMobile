@@ -1,5 +1,6 @@
 package com.nuvio.app.features.details
 
+import co.touchlab.kermit.Logger
 import com.nuvio.app.features.addons.AddonManifest
 import com.nuvio.app.features.addons.AddonRepository
 import com.nuvio.app.features.addons.httpGetText
@@ -12,11 +13,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 object MetaDetailsRepository {
+    private val log = Logger.withTag("MetaDetailsRepo")
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val _uiState = MutableStateFlow(MetaDetailsUiState())
     val uiState: StateFlow<MetaDetailsUiState> = _uiState.asStateFlow()
 
     fun load(type: String, id: String) {
+        log.d { "load() called — type=$type id=$id" }
         _uiState.value = MetaDetailsUiState(isLoading = true)
 
         scope.launch {
@@ -31,6 +34,7 @@ object MetaDetailsRepository {
                 }
 
             if (manifests.isEmpty()) {
+                log.w { "No addon provides meta for type=$type id=$id" }
                 _uiState.value = MetaDetailsUiState(
                     errorMessage = "No addon provides meta for this content.",
                 )
@@ -65,9 +69,18 @@ object MetaDetailsRepository {
                 .substringBefore("?")
                 .removeSuffix("/manifest.json")
             val url = "$baseUrl/meta/$type/$id.json"
+            log.d { "Fetching meta from: $url" }
             val payload = httpGetText(url)
-            MetaDetailsParser.parse(payload)
-        } catch (_: Throwable) {
+            log.d { "Raw payload length=${payload.length}, first 500 chars: ${payload.take(500)}" }
+            val result = MetaDetailsParser.parse(payload)
+            log.d { "Parsed meta: type=${result.type}, name=${result.name}, videos=${result.videos.size}" }
+            if (result.videos.isNotEmpty()) {
+                val first = result.videos.first()
+                log.d { "First video: id=${first.id} title=${first.title} s=${first.season} e=${first.episode}" }
+            }
+            result
+        } catch (e: Throwable) {
+            log.e(e) { "Failed to fetch/parse meta from ${manifest.transportUrl}" }
             null
         }
     }
