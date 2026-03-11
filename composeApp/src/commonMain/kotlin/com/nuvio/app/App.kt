@@ -1,34 +1,29 @@
 package com.nuvio.app
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Extension
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import coil3.ImageLoader
@@ -95,39 +90,36 @@ fun App() {
     }
     NuvioTheme {
         val navController = rememberNavController()
-        val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
         var selectedTab by rememberSaveable { mutableStateOf(AppScreenTab.Home) }
-
-        // iOS-only: StreamsScreen is presented as a native modal sheet instead of
-        // a NavHost destination. On Android this stays null and navController is used.
-        var pendingStream by remember { mutableStateOf<StreamRoute?>(null) }
 
         val onPlay: (String, String, String, String?, String?, String?, Int?, Int?, String?, String?) -> Unit =
             { type, videoId, title, logo, poster, background, seasonNumber, episodeNumber, episodeTitle, episodeThumbnail ->
-                val route = StreamRoute(
-                    type = type,
-                    videoId = videoId,
-                    title = title,
-                    logo = logo,
-                    poster = poster,
-                    background = background,
-                    seasonNumber = seasonNumber,
-                    episodeNumber = episodeNumber,
-                    episodeTitle = episodeTitle,
-                    episodeThumbnail = episodeThumbnail,
+                navController.navigate(
+                    StreamRoute(
+                        type = type,
+                        videoId = videoId,
+                        title = title,
+                        logo = logo,
+                        poster = poster,
+                        background = background,
+                        seasonNumber = seasonNumber,
+                        episodeNumber = episodeNumber,
+                        episodeTitle = episodeTitle,
+                        episodeThumbnail = episodeThumbnail,
+                    )
                 )
-                if (isIos) {
-                    pendingStream = route
-                } else {
-                    navController.navigate(route)
-                }
             }
 
-        Scaffold(
-            containerColor = MaterialTheme.colorScheme.background,
-            contentWindowInsets = WindowInsets(0),
-            bottomBar = {
-                if (currentRoute == TabsRoute::class.qualifiedName) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
+        ) {
+            Scaffold(
+                modifier = Modifier.fillMaxSize(),
+                containerColor = MaterialTheme.colorScheme.background,
+                contentWindowInsets = WindowInsets(0),
+                bottomBar = {
                     NavigationBar(
                         containerColor = MaterialTheme.colorScheme.surface,
                         windowInsets = WindowInsets(0),
@@ -145,21 +137,24 @@ fun App() {
                             label = { Text("Addons") },
                         )
                     }
-                }
-            },
-        ) { innerPadding ->
+                },
+            ) { innerPadding ->
+                AppScreen(
+                    tab = selectedTab,
+                    modifier = Modifier.padding(innerPadding),
+                    onPosterClick = { meta ->
+                        navController.navigate(DetailRoute(type = meta.type, id = meta.id))
+                    },
+                )
+            }
+
             NavHost(
                 navController = navController,
                 startDestination = TabsRoute,
+                modifier = Modifier.fillMaxSize(),
             ) {
                 composable<TabsRoute> {
-                    AppScreen(
-                        tab = selectedTab,
-                        modifier = Modifier.padding(innerPadding),
-                        onPosterClick = { meta ->
-                            navController.navigate(DetailRoute(type = meta.type, id = meta.id))
-                        },
-                    )
+                    Unit
                 }
                 composable<DetailRoute> { backStackEntry ->
                     val route = backStackEntry.toRoute<DetailRoute>()
@@ -171,10 +166,9 @@ fun App() {
                             navController.popBackStack()
                         },
                         onPlay = onPlay,
-                        modifier = Modifier.padding(innerPadding),
+                        modifier = Modifier.fillMaxSize(),
                     )
                 }
-                // Android only: iOS uses the modal sheet below instead
                 composable<StreamRoute> { backStackEntry ->
                     val route = backStackEntry.toRoute<StreamRoute>()
                     StreamsScreen(
@@ -192,41 +186,9 @@ fun App() {
                             StreamsRepository.clear()
                             navController.popBackStack()
                         },
-                        modifier = Modifier.padding(innerPadding),
+                        modifier = Modifier.fillMaxSize(),
                     )
                 }
-            }
-        }
-
-        // iOS native modal sheet presentation for StreamsScreen
-        pendingStream?.let { route ->
-            ModalBottomSheet(
-                onDismissRequest = {
-                    StreamsRepository.clear()
-                    pendingStream = null
-                },
-                sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-                containerColor = Color.Transparent,
-                contentColor = MaterialTheme.colorScheme.onBackground,
-                dragHandle = null,
-                contentWindowInsets = { WindowInsets.safeDrawing.only(WindowInsetsSides.Top) },
-            ) {
-                StreamsScreen(
-                    type = route.type,
-                    videoId = route.videoId,
-                    title = route.title,
-                    logo = route.logo,
-                    poster = route.poster,
-                    background = route.background,
-                    seasonNumber = route.seasonNumber,
-                    episodeNumber = route.episodeNumber,
-                    episodeTitle = route.episodeTitle,
-                    episodeThumbnail = route.episodeThumbnail,
-                    onBack = {
-                        StreamsRepository.clear()
-                        pendingStream = null
-                    },
-                )
             }
         }
     }
