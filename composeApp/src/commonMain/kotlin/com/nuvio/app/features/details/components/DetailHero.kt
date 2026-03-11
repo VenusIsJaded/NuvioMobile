@@ -19,12 +19,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.graphicsLayer
 import coil3.compose.AsyncImage
 import com.nuvio.app.features.details.MetaDetails
 
 @Composable
 fun DetailHero(
     meta: MetaDetails,
+    scrollOffset: Int = 0,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -37,7 +39,10 @@ fun DetailHero(
                 contentDescription = meta.name,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .aspectRatio(0.75f),
+                    .aspectRatio(0.75f)
+                    .graphicsLayer {
+                        translationY = scrollOffset * 0.5f
+                    },
                 contentScale = ContentScale.Crop,
             )
         } else {
