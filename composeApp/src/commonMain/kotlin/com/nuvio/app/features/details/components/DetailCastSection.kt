@@ -3,8 +3,8 @@ package com.nuvio.app.features.details.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
@@ -18,7 +18,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun DetailCastSection(
@@ -27,21 +29,22 @@ fun DetailCastSection(
 ) {
     if (cast.isEmpty()) return
 
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
+    DetailSection(
+        title = "Cast",
+        modifier = modifier,
     ) {
-        Text(
-            text = "Cast",
-            style = MaterialTheme.typography.headlineLarge,
-            color = MaterialTheme.colorScheme.onBackground,
-        )
+        BoxWithConstraints {
+            val sizing = castSectionSizing(maxWidth.value)
 
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(20.dp),
-        ) {
-            items(cast) { name ->
-                CastItem(name = name)
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(sizing.avatarGap),
+            ) {
+                items(cast) { name ->
+                    CastItem(
+                        name = name,
+                        sizing = sizing,
+                    )
+                }
             }
         }
     }
@@ -51,6 +54,8 @@ fun DetailCastSection(
 private fun CastItem(
     name: String,
     modifier: Modifier = Modifier,
+    subLabel: String? = null,
+    sizing: CastSectionSizing,
 ) {
     Column(
         modifier = modifier,
@@ -59,7 +64,7 @@ private fun CastItem(
     ) {
         Box(
             modifier = Modifier
-                .size(64.dp)
+                .size(sizing.avatarSize)
                 .background(
                     color = MaterialTheme.colorScheme.surfaceVariant,
                     shape = CircleShape,
@@ -75,14 +80,63 @@ private fun CastItem(
         }
         Text(
             text = name,
-            style = MaterialTheme.typography.labelMedium,
+            style = MaterialTheme.typography.bodyMedium.copy(
+                fontSize = sizing.nameLabelSize,
+            ),
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
+        if (!subLabel.isNullOrBlank()) {
+            Text(
+                text = subLabel,
+                style = MaterialTheme.typography.bodySmall.copy(
+                    fontSize = sizing.subLabelSize,
+                ),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
     }
 }
+
+private data class CastSectionSizing(
+    val avatarSize: androidx.compose.ui.unit.Dp,
+    val avatarGap: androidx.compose.ui.unit.Dp,
+    val nameLabelSize: TextUnit,
+    val subLabelSize: TextUnit,
+)
+
+private fun castSectionSizing(maxWidthDp: Float): CastSectionSizing =
+    when {
+        maxWidthDp >= 1200f -> CastSectionSizing(
+            avatarSize = 100.dp,
+            avatarGap = 20.dp,
+            nameLabelSize = 16.sp,
+            subLabelSize = 14.sp,
+        )
+        maxWidthDp >= 840f -> CastSectionSizing(
+            avatarSize = 90.dp,
+            avatarGap = 18.dp,
+            nameLabelSize = 15.sp,
+            subLabelSize = 13.sp,
+        )
+        maxWidthDp >= 600f -> CastSectionSizing(
+            avatarSize = 85.dp,
+            avatarGap = 16.dp,
+            nameLabelSize = 14.sp,
+            subLabelSize = 12.sp,
+        )
+        else -> CastSectionSizing(
+            avatarSize = 80.dp,
+            avatarGap = 16.dp,
+            nameLabelSize = 14.sp,
+            subLabelSize = 12.sp,
+        )
+    }
 
 private fun String.initials(): String {
     val parts = trim().split(" ").filter { it.isNotBlank() }
