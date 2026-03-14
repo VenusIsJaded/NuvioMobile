@@ -515,7 +515,14 @@ const SearchScreen = () => {
 
         setResults(prev => {
           if (!isMounted.current) return prev;
-          const getRank = (id: string) => addonOrderRankRef.current[id] ?? Number.MAX_SAFE_INTEGER;
+          // Use catalogIndex from the section for deterministic ordering.
+          // Falls back to addonOrderRankRef for legacy single-catalog sections.
+          const getRank = (section: AddonSearchResults) => {
+            if (section.catalogIndex !== undefined) return section.catalogIndex;
+            if (addonOrderRankRef.current[section.addonId] !== undefined) return addonOrderRankRef.current[section.addonId] * 1000;
+            const baseAddonId = section.addonId.includes('||') ? section.addonId.split('||')[0] : section.addonId;
+            return (addonOrderRankRef.current[baseAddonId] ?? Number.MAX_SAFE_INTEGER - 1) * 1000 + 500;
+          };
           const existingIndex = prev.byAddon.findIndex(s => s.addonId === section.addonId);
 
           if (existingIndex >= 0) {
@@ -524,10 +531,10 @@ const SearchScreen = () => {
             return { byAddon: copy, allResults: prev.allResults };
           }
 
-          const insertRank = getRank(section.addonId);
+          const insertRank = getRank(section);
           let insertAt = prev.byAddon.length;
           for (let i = 0; i < prev.byAddon.length; i++) {
-            if (getRank(prev.byAddon[i].addonId) > insertRank) {
+            if (getRank(prev.byAddon[i]) > insertRank) {
               insertAt = i;
               break;
             }
