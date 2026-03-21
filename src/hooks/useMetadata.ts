@@ -1576,8 +1576,7 @@ export const useMetadata = ({ id, type, addonId }: UseMetadataProps): UseMetadat
       let tmdbId;
       let stremioId = id;
       // Use TMDB-resolved type if available — handles "other", "Movie", etc.
-      // Use metadata.type first (most reliable — comes directly from the addon's meta response),
-      // then fall back to TMDB-resolved type, then normalizedType.
+      // Use metadata.type first (from addon meta response), then TMDB-resolved, then normalized
       let effectiveStreamType: string = metadata?.type || resolvedTypeRef.current || normalizedType;
 
       if (id.startsWith('tmdb:')) {
@@ -1633,7 +1632,8 @@ export const useMetadata = ({ id, type, addonId }: UseMetadataProps): UseMetadat
         const allStremioAddons = await stremioService.getInstalledAddons();
         const localScrapers = await localScraperService.getInstalledScrapers();
 
-        const requestedStreamType = type;
+        // Use the best available type — not raw type which may be "other"
+        const requestedStreamType = metadata?.type || resolvedTypeRef.current || normalizedType;
 
         const pickEligibleStreamAddons = (requestType: string) =>
           allStremioAddons.filter(addon => {
