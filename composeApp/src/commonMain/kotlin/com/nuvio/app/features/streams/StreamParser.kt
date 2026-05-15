@@ -27,6 +27,7 @@ object StreamParser {
             val infoHash = obj.string("infoHash")
             val externalUrl = obj.string("externalUrl")
             val clientResolve = obj.objectValue("clientResolve")?.toClientResolve()
+            val streamType = obj.string("type")
 
             // Must have at least one playable source
             if (url == null && infoHash == null && externalUrl == null && clientResolve == null) return@mapNotNull null
@@ -44,6 +45,7 @@ object StreamParser {
                 fileIdx = obj.int("fileIdx"),
                 externalUrl = externalUrl,
                 sources = obj.stringList("sources"),
+                streamType = streamType,
                 addonName = addonName,
                 addonId = addonId,
                 clientResolve = clientResolve,
