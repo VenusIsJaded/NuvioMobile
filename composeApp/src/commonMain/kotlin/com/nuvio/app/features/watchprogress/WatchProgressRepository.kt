@@ -342,6 +342,7 @@ object WatchProgressRepository {
         snapshot: PlayerPlaybackSnapshot,
         persist: Boolean,
     ) {
+        val wasCompleted = progressForVideo(session.videoId)?.isCompleted == true
         val positionMs = snapshot.positionMs.coerceAtLeast(0L)
         val durationMs = snapshot.durationMs.coerceAtLeast(0L)
         val isCompleted = isWatchProgressComplete(
@@ -392,7 +393,7 @@ object WatchProgressRepository {
             resolveRemoteMetadata()
         }
         pushScrobbleToServer(entry)
-        WatchingActions.onProgressEntryUpdated(entry)
+        WatchingActions.onProgressEntryUpdated(entry, wasCompleted)
     }
 
     private fun pushScrobbleToServer(entry: WatchProgressEntry) {

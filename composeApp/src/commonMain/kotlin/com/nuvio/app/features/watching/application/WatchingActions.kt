@@ -106,7 +106,8 @@ object WatchingActions {
         )
     }
 
-    fun onProgressEntryUpdated(entry: WatchProgressEntry) {
+    fun onProgressEntryUpdated(entry: WatchProgressEntry, wasCompleted: Boolean = false) {
+        if (wasCompleted) return
         if (!entry.isCompleted) return
 
         val watchedItem = WatchedItem(
