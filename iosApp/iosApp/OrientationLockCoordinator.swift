@@ -102,7 +102,7 @@ final class OrientationLockCoordinator {
                 .compactMap { $0 as? UIWindowScene }
                 .flatMap(\.windows)
                 .forEach { window in
-                    window.rootViewController?.setNeedsUpdateOfSupportedInterfaceOrientations()
+                    window.rootViewController?.setNeedsUpdateOfSupportedInterfaceOrientations(); window.rootViewController?.setNeedsStatusBarAppearanceUpdate()
                 }
         } else {
             if forceRotate {

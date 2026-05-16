@@ -370,15 +370,15 @@ final class RootComposeViewController: UIViewController, UITabBarDelegate {
     }
 
     override var childForHomeIndicatorAutoHidden: UIViewController? {
-        immersiveController(in: contentController) ?? contentController
+        OrientationLockCoordinator.shared.supportedOrientations == .landscape ? nil : (immersiveController(in: contentController) ?? contentController)
     }
 
     override var childForScreenEdgesDeferringSystemGestures: UIViewController? {
-        immersiveController(in: contentController) ?? contentController
+        OrientationLockCoordinator.shared.supportedOrientations == .landscape ? nil : (immersiveController(in: contentController) ?? contentController)
     }
 
     override var childForStatusBarHidden: UIViewController? {
-        immersiveController(in: contentController) ?? contentController
+        OrientationLockCoordinator.shared.supportedOrientations == .landscape ? nil : (immersiveController(in: contentController) ?? contentController)
     }
 
     override var prefersHomeIndicatorAutoHidden: Bool {
@@ -390,7 +390,7 @@ final class RootComposeViewController: UIViewController, UITabBarDelegate {
     }
 
     override var prefersStatusBarHidden: Bool {
-        immersiveController(in: contentController)?.prefersStatusBarHidden ?? false
+        OrientationLockCoordinator.shared.supportedOrientations == .landscape ? true : (immersiveController(in: contentController)?.prefersStatusBarHidden ?? false)
     }
 
     override var preferredStatusBarUpdateAnimation: UIStatusBarAnimation {
