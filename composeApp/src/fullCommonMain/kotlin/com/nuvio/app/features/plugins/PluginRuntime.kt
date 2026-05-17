@@ -264,11 +264,6 @@ internal object PluginRuntime {
                     prevId
                 }
 
-                function("__capture_result") { args ->
-                    resultJson = args.getOrNull(0)?.toString() ?: "[]"
-                    null
-                }
-
                 val settingsJson = toJsonElement(scraperSettings).toString()
                 val polyfillCode = buildPolyfillCode(scraperId, settingsJson)
                 evaluate<Any?>(polyfillCode)
@@ -290,18 +285,21 @@ internal object PluginRuntime {
                             var getStreams = module.exports.getStreams || globalThis.getStreams;
                             if (!getStreams) {
                                 console.error("getStreams function not found on module.exports or globalThis");
-                                __capture_result(JSON.stringify([]));
+                                globalThis.__nuvio_plugin_result = JSON.stringify([]);
                                 return;
                             }
                             var result = await getStreams("$tmdbId", "$mediaType", $seasonArg, $episodeArg);
-                            __capture_result(JSON.stringify(result || []));
+                            globalThis.__nuvio_plugin_result = JSON.stringify(result || []);
                         } catch (e) {
                             console.error("getStreams error:", e && e.message ? e.message : e, e && e.stack ? e.stack : "");
-                            __capture_result(JSON.stringify([]));
+                            globalThis.__nuvio_plugin_result = JSON.stringify([]);
                         }
                     })();
                 """.trimIndent()
                 evaluate<Any?>(callCode)
+                resultJson = evaluate<String>(
+                    "typeof globalThis.__nuvio_plugin_result === 'string' ? globalThis.__nuvio_plugin_result : '[]'"
+                ) ?: "[]"
             }
 
             return parseJsonResults(resultJson)
